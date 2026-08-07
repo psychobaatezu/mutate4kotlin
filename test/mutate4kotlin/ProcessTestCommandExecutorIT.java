@@ -40,15 +40,15 @@ class ProcessTestCommandExecutorIT {
     @Test
     void timesOutLongRunningMavenTests() throws Exception {
         Path projectRoot = TestProjectFactory.createProject("process-test-timeout");
-        Files.writeString(projectRoot.resolve("test/mutate4kotlin/SampleTest.java"), """
-                package mutate4kotlin;
+        Files.writeString(projectRoot.resolve("src/test/kotlin/mutate4kotlin/SampleTest.kt"), """
+                package mutate4kotlin
 
-                import org.junit.jupiter.api.Test;
+                import org.junit.jupiter.api.Test
 
                 class SampleTest {
                     @Test
-                    void waitsTooLong() throws Exception {
-                        Thread.sleep(5000);
+                    fun waitsTooLong() {
+                        Thread.sleep(5000)
                     }
                 }
                 """);

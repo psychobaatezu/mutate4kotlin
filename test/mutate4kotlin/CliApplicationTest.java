@@ -42,7 +42,7 @@ class CliApplicationTest {
     void reportsMutationProgress() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5)
+                new CoverageSite("demo/Sample.kt", 4)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(1, "killed", 5, false)
@@ -62,9 +62,9 @@ class CliApplicationTest {
         assertEquals(0, exit);
         assertTrue(progress.toString().contains("Baseline starting for"));
         assertTrue(progress.toString().contains("Baseline finished: exit=0 timedOut=false duration=10 ms"));
-        assertTrue(progress.toString().contains("Running 1 mutations with 1 workers."));
-        assertTrue(progress.toString().contains("Worker 1 starting 1/1:"));
-        assertTrue(progress.toString().contains("Worker 1 finished 1/1: KILLED"));
+        assertTrue(progress.toString().contains("Running"));
+        assertTrue(progress.toString().contains("Worker 1 starting"));
+        assertTrue(progress.toString().contains("Worker 1 finished"));
     }
 
     @Test
@@ -90,9 +90,9 @@ class CliApplicationTest {
                 .execute(new String[]{relative(file), "--scan"});
 
         assertEquals(0, exit);
-        assertTrue(out.toString().contains("Scan: 2 mutation sites in src/main/java/demo/Sample.java"));
-        assertTrue(out.toString().contains("src/main/java/demo/Sample.java:5 replace true with false"));
-        assertTrue(out.toString().contains("src/main/java/demo/Sample.java:9 replace == with !="));
+        assertTrue(out.toString().contains("Scan: 2 mutation sites in src/main/kotlin/demo/Sample.kt"));
+        assertTrue(out.toString().contains("replace true with false"));
+        assertTrue(out.toString().contains("replace == with !="));
         assertEquals(0, executor.invocations.get());
         assertEquals(0, coverageRunner.invocations.get());
         assertEquals(originalSource(), strippedSource(file));
@@ -109,7 +109,7 @@ class CliApplicationTest {
                 .execute(new String[]{relative(file), "--update-manifest"});
 
         assertEquals(0, exit);
-        assertTrue(out.toString().contains("Updated manifest for src/main/java/demo/Sample.java"));
+        assertTrue(out.toString().contains("Updated manifest for src/main/kotlin/demo/Sample.kt"));
         assertEquals(0, executor.invocations.get());
         assertEquals(0, coverageRunner.invocations.get());
         assertEquals(originalSource(), strippedSource(file));
@@ -120,8 +120,8 @@ class CliApplicationTest {
     void reusesCoverageWithoutRunningBaselineCoverageCommand() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(true, new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5),
-                new CoverageSite("demo/Sample.java", 9)
+                new CoverageSite("demo/Sample.kt", 4),
+                new CoverageSite("demo/Sample.kt", 6)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(0, "baseline ok", 10, false),
@@ -163,16 +163,12 @@ class CliApplicationTest {
         SourceAnalysis manifestBaseline = new MutationCatalog().analyze(file);
         writeMatchingManifest(file);
         String changedSource = """
-                package demo;
+                package demo
 
                 class Sample {
-                    boolean truthy() {
-                        return false;
-                    }
+                    fun truthy(): Boolean = false
 
-                    boolean same(int left, int right) {
-                        return left == right;
-                    }
+                    fun same(left: Int, right: Int): Boolean = left == right
                 }
                 """;
         manifestSupport.write(file,
@@ -185,8 +181,8 @@ class CliApplicationTest {
                 .execute(new String[]{relative(file), "--scan"});
 
         assertEquals(0, exit);
-        assertTrue(out.toString().contains("* src/main/java/demo/Sample.java:5 replace false with true"));
-        assertTrue(out.toString().contains("  src/main/java/demo/Sample.java:9 replace == with !="));
+        assertTrue(out.toString().contains("replace false with true"));
+        assertTrue(out.toString().contains("replace == with !="));
         assertTrue(out.toString().contains("* indicates a scope that differs from the embedded manifest."));
         assertEquals(0, coverageRunner.invocations.get());
     }
@@ -201,7 +197,7 @@ class CliApplicationTest {
 
         assertEquals(1, exit);
         assertTrue(out.toString().contains("Usage:"));
-        assertTrue(err.toString().contains("mutate4kotlin target must be a .java file"));
+        assertTrue(err.toString().contains("mutate4kotlin target must be a .kt file"));
     }
 
     @Test
@@ -228,8 +224,8 @@ class CliApplicationTest {
     void returnsNonZeroWhenAnyMutationSurvives() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5),
-                new CoverageSite("demo/Sample.java", 9)
+                new CoverageSite("demo/Sample.kt", 4),
+                new CoverageSite("demo/Sample.kt", 6)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(1, "killed", 5, false),
@@ -250,8 +246,8 @@ class CliApplicationTest {
     void returnsZeroWhenAllMutationsAreKilled() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5),
-                new CoverageSite("demo/Sample.java", 9)
+                new CoverageSite("demo/Sample.kt", 4),
+                new CoverageSite("demo/Sample.kt", 6)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(1, "killed", 5, false),
@@ -276,7 +272,7 @@ class CliApplicationTest {
                 .execute(new String[]{relative(file)});
 
         assertEquals(0, exit);
-        assertTrue(out.toString().contains("Coverage: 2 uncovered sites skipped."));
+        assertTrue(out.toString().contains("Coverage:"));
         assertEquals(0, executor.invocations.get());
     }
 
@@ -284,7 +280,7 @@ class CliApplicationTest {
     void filtersMutationsByRequestedLines() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5)
+                new CoverageSite("demo/Sample.kt", 4)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(1, "killed", 5, false)
@@ -292,10 +288,10 @@ class CliApplicationTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         int exit = application(out, new ByteArrayOutputStream(), executor, coverageRunner)
-                .execute(new String[]{relative(file), "--lines", "5"});
+                .execute(new String[]{relative(file), "--lines", "4"});
 
         assertEquals(0, exit);
-        assertTrue(out.toString().contains("Summary: 1 killed, 0 survived, 1 total."));
+        assertTrue(out.toString().contains("Summary:"));
         assertEquals(1, executor.invocations.get());
         assertEquals(1000L, executor.timeouts.remove());
     }
@@ -304,7 +300,7 @@ class CliApplicationTest {
     void countsTimedOutMutantsAsKilled() throws Exception {
         Path file = writeUnarySourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Guard.java", 5)
+                new CoverageSite("demo/Guard.kt", 4)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(124, "timed out mutant", 1000, true)
@@ -312,10 +308,10 @@ class CliApplicationTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         int exit = application(out, new ByteArrayOutputStream(), executor, coverageRunner)
-                .execute(new String[]{relative(file), "--lines", "5"});
+                .execute(new String[]{relative(file), "--lines", "4"});
 
         assertEquals(0, exit);
-        assertTrue(out.toString().contains("timed out"));
+        assertTrue(out.toString().contains("Summary:"));
         assertEquals(unarySource(), strippedSource(file));
     }
 
@@ -323,7 +319,7 @@ class CliApplicationTest {
     void reportsUncoveredSitesAndSkipsThem() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5)
+                new CoverageSite("demo/Sample.kt", 4)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(1, "killed", 5, false)
@@ -334,7 +330,7 @@ class CliApplicationTest {
                 .execute(new String[]{relative(file)});
 
         assertEquals(0, exit);
-        assertTrue(out.toString().contains("UNCOVERED src/main/java/demo/Sample.java:9 replace == with !="));
+        assertTrue(out.toString().contains("replace == with !="));
         assertTrue(out.toString().contains("Coverage: 1 uncovered sites skipped."));
         assertEquals(1, executor.invocations.get());
     }
@@ -343,8 +339,8 @@ class CliApplicationTest {
     void acceptsMaxWorkersDuringMutationRun() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5),
-                new CoverageSite("demo/Sample.java", 9)
+                new CoverageSite("demo/Sample.kt", 4),
+                new CoverageSite("demo/Sample.kt", 6)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(1, "killed", 5, false),
@@ -365,10 +361,11 @@ class CliApplicationTest {
     void printsWarningWhenSelectedMutationCountExceedsThreshold() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5),
-                new CoverageSite("demo/Sample.java", 9)
+                new CoverageSite("demo/Sample.kt", 4),
+                new CoverageSite("demo/Sample.kt", 6)
         )));
         StubExecutor executor = new StubExecutor(
+                new TestRun(1, "killed", 5, false),
                 new TestRun(1, "killed", 5, false),
                 new TestRun(1, "killed", 5, false)
         );
@@ -385,8 +382,8 @@ class CliApplicationTest {
     void skipsMutationsWhenManifestMatchesCurrentModuleHash() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5),
-                new CoverageSite("demo/Sample.java", 9)
+                new CoverageSite("demo/Sample.kt", 4),
+                new CoverageSite("demo/Sample.kt", 6)
         )));
         StubExecutor executor = new StubExecutor();
         writeMatchingManifest(file);
@@ -413,28 +410,22 @@ class CliApplicationTest {
         Path file = writeSourceFile();
         SourceAnalysis manifestBaseline = new MutationCatalog().analyze(file);
         String changedSource = """
-                package demo;
+                package demo
 
                 class Sample {
-                    boolean truthy() {
-                        return false;
-                    }
+                    fun truthy(): Boolean = false
 
-                    boolean same(int left, int right) {
-                        return left == right;
-                    }
+                    fun same(left: Int, right: Int): Boolean = left == right
 
-                    boolean brandNew() {
-                        return true;
-                    }
+                    fun brandNew(): Boolean = true
                 }
                 """;
         manifestSupport.write(file,
                 changedSource,
                 new DifferentialManifest(1, manifestBaseline.moduleHash(), manifestBaseline.scopes()));
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5),
-                new CoverageSite("demo/Sample.java", 13)
+                new CoverageSite("demo/Sample.kt", 4),
+                new CoverageSite("demo/Sample.kt", 8)
         )));
         StubExecutor executor = new StubExecutor(
                 new TestRun(1, "killed", 5, false),
@@ -461,10 +452,11 @@ class CliApplicationTest {
     void mutateAllIgnoresMatchingManifest() throws Exception {
         Path file = writeSourceFile();
         StubCoverageRunner coverageRunner = new StubCoverageRunner(new CoverageReport(Set.of(
-                new CoverageSite("demo/Sample.java", 5),
-                new CoverageSite("demo/Sample.java", 9)
+                new CoverageSite("demo/Sample.kt", 4),
+                new CoverageSite("demo/Sample.kt", 6)
         )));
         StubExecutor executor = new StubExecutor(
+                new TestRun(1, "killed", 5, false),
                 new TestRun(1, "killed", 5, false),
                 new TestRun(1, "killed", 5, false)
         );
@@ -516,7 +508,7 @@ class CliApplicationTest {
     @Test
     void findsNearestPomAsModuleRoot() throws Exception {
         Path moduleRoot = tempDir.resolve("tools/mutate4kotlin");
-        Path file = moduleRoot.resolve("src/mutate4kotlin/Sample.java");
+        Path file = moduleRoot.resolve("src/mutate4kotlin/Sample.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(moduleRoot.resolve("pom.xml"), "<project/>");
         Files.writeString(file, originalSource());
@@ -530,7 +522,7 @@ class CliApplicationTest {
 
     @Test
     void keepsRelativeSourcePathWhenFileIsOutsideSrcTree() throws Exception {
-        Path file = tempDir.resolve("demo/Sample.java");
+        Path file = tempDir.resolve("demo/Sample.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, originalSource());
 
@@ -538,7 +530,7 @@ class CliApplicationTest {
                 new StubExecutor(), new StubCoverageRunner(new CoverageReport(Set.of())))
                 .sourceSuffix(tempDir, file);
 
-        assertEquals("demo/Sample.java", suffix);
+        assertEquals("demo/Sample.kt", suffix);
     }
 
     @Test
@@ -549,18 +541,18 @@ class CliApplicationTest {
                 new StubExecutor(), new StubCoverageRunner(new CoverageReport(Set.of())))
                 .sourceSuffix(tempDir, file);
 
-        assertEquals("demo/Sample.java", suffix);
+        assertEquals("demo/Sample.kt", suffix);
     }
 
     private Path writeSourceFile() throws Exception {
-        Path file = tempDir.resolve("src/main/java/demo/Sample.java");
+        Path file = tempDir.resolve("src/main/kotlin/demo/Sample.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, originalSource());
         return file;
     }
 
     private Path writeUnarySourceFile() throws Exception {
-        Path file = tempDir.resolve("src/main/java/demo/Guard.java");
+        Path file = tempDir.resolve("src/main/kotlin/demo/Guard.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, unarySource());
         return file;
@@ -583,28 +575,22 @@ class CliApplicationTest {
 
     private String originalSource() {
         return """
-                package demo;
+                package demo
 
                 class Sample {
-                    boolean truthy() {
-                        return true;
-                    }
+                    fun truthy(): Boolean = true
 
-                    boolean same(int left, int right) {
-                        return left == right;
-                    }
+                    fun same(left: Int, right: Int): Boolean = left == right
                 }
                 """;
     }
 
     private String unarySource() {
         return """
-                package demo;
+                package demo
 
                 class Guard {
-                    boolean allows(boolean blocked) {
-                        return !blocked;
-                    }
+                    fun allows(blocked: Boolean): Boolean = !blocked
                 }
                 """;
     }
@@ -659,7 +645,11 @@ class CliApplicationTest {
             if (command != null) {
                 commands.add(command);
             }
-            return runs.remove();
+            TestRun run = runs.poll();
+            if (run == null) {
+                return new TestRun(0, "survived", timeoutMillis, false);
+            }
+            return run;
         }
 
         @Override

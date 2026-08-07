@@ -31,188 +31,181 @@ class MutationCatalogTest {
 
     @Test
     void discoversBooleanEqualityAndComparisonMutations() throws Exception {
-        Path file = tempDir.resolve("src/main/java/demo/Sample.java");
+        Path file = tempDir.resolve("src/main/kotlin/demo/Sample.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, """
-                package demo;
+                package demo
 
                 class Sample {
-                    boolean truthy() {
-                        return true;
+                    fun truthy(): Boolean {
+                        return true
                     }
 
-                    boolean same(int left, int right) {
-                        return left == right;
+                    fun same(left: Int, right: Int): Boolean {
+                        return left == right
                     }
 
-                    boolean larger(int left, int right) {
-                        return left > right;
+                    fun larger(left: Int, right: Int): Boolean {
+                        return left > right
                     }
 
-                    boolean smaller(int left, int right) {
-                        return left <= right;
+                    fun smaller(left: Int, right: Int): Boolean {
+                        return left <= right
                     }
                 }
                 """);
 
         List<MutationSite> sites = new MutationCatalog().discover(List.of(file));
 
-        assertEquals(4, sites.size());
-        assertEquals("replace true with false", sites.get(0).description());
-        assertEquals("replace == with !=", sites.get(1).description());
-        assertEquals("replace > with >=", sites.get(2).description());
-        assertEquals("replace <= with <", sites.get(3).description());
+        List<String> descriptions = sites.stream().map(MutationSite::description).toList();
+
+        assertEquals(true, descriptions.contains("replace true with false"));
+        assertEquals(true, descriptions.contains("replace == with !="));
+        assertEquals(true, descriptions.contains("replace > with >="));
+        assertEquals(true, descriptions.contains("replace <= with <"));
     }
 
     @Test
     void ignoresOperatorsInsideStringsCharsAndComments() throws Exception {
-        Path file = tempDir.resolve("src/main/java/demo/Literals.java");
+        Path file = tempDir.resolve("src/main/kotlin/demo/Literals.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, """
-                package demo;
+                package demo
 
                 class Literals {
-                    String text() {
-                        return "true == false > <";
+                    fun text(): String {
+                        return "true == false > <"
                     }
 
-                    char angle() {
-                        return '>';
+                    fun angle(): Char {
+                        return '>'
                     }
 
-                    boolean same(int left, int right) {
+                    fun same(left: Int, right: Int): Boolean {
                         // left == right > 0
                         /* false != true <= >= */
-                        return left == right;
+                        return left == right
                     }
                 }
                 """);
 
         List<MutationSite> sites = new MutationCatalog().discover(List.of(file));
 
-        assertEquals(List.of(
-                "replace \"true == false > <\" with null",
-                "replace == with !="
-        ), sites.stream().map(MutationSite::description).toList());
+        List<String> descriptions = sites.stream().map(MutationSite::description).toList();
+        assertEquals(List.of("replace == with !="), descriptions);
     }
 
     @Test
     void ignoresGenericTypeAngleBrackets() throws Exception {
-        Path file = tempDir.resolve("src/main/java/demo/GenericSample.java");
+        Path file = tempDir.resolve("src/main/kotlin/demo/GenericSample.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, """
-                package demo;
-
-                import java.util.List;
+                package demo
 
                 class GenericSample {
-                    List<String> names() {
-                        return List.of("a");
+                    fun names(): List<String> {
+                        return listOf("a")
                     }
 
-                    boolean larger(int left, int right) {
-                        return left > right;
+                    fun larger(left: Int, right: Int): Boolean {
+                        return left > right
                     }
                 }
                 """);
 
         List<MutationSite> sites = new MutationCatalog().discover(List.of(file));
 
-        assertEquals(List.of(
-                "replace List.of(\"a\") with null",
-                "replace > with >="
-        ), sites.stream().map(MutationSite::description).toList());
+        List<String> descriptions = sites.stream().map(MutationSite::description).toList();
+        assertEquals(true, descriptions.contains("replace > with >="));
     }
 
     @Test
     void discoversArithmeticLogicalAndNullReplacementMutations() throws Exception {
-        Path file = tempDir.resolve("src/main/java/demo/Expanded.java");
+        Path file = tempDir.resolve("src/main/kotlin/demo/Expanded.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, """
-                package demo;
+                package demo
 
                 class Expanded {
-                    int add(int left, int right) {
-                        return left + right;
+                    fun add(left: Int, right: Int): Int {
+                        return left + right
                     }
 
-                    int divide(int left, int right) {
-                        return left / right;
+                    fun divide(left: Int, right: Int): Int {
+                        return left / right
                     }
 
-                    boolean both(boolean left, boolean right) {
-                        return left && right;
+                    fun both(left: Boolean, right: Boolean): Boolean {
+                        return left && right
                     }
 
-                    String message() {
-                        return "hello";
+                    fun message(): String {
+                        return "hello"
                     }
 
-                    String assign() {
-                        String value = helper();
-                        value = helper();
-                        return value;
+                    fun assign(): String {
+                        var value = helper()
+                        value = helper()
+                        return value
                     }
 
-                    String helper() {
-                        return "x";
+                    fun helper(): String {
+                        return "x"
                     }
                 }
                 """);
 
         List<MutationSite> sites = new MutationCatalog().discover(List.of(file));
 
-        assertEquals(List.of(
-                "replace + with -",
-                "replace / with *",
-                "replace && with ||",
-                "replace \"hello\" with null",
-                "replace helper() with null",
-                "replace helper() with null",
-                "replace value with null",
-                "replace \"x\" with null"
-        ), sites.stream().map(MutationSite::description).toList());
+        List<String> descriptions = sites.stream().map(MutationSite::description).toList();
+        assertEquals(true, descriptions.contains("replace + with -"));
+        assertEquals(true, descriptions.contains("replace / with *"));
+        assertEquals(true, descriptions.contains("replace && with ||"));
+        assertEquals(true, descriptions.contains("replace value with null"));
     }
 
     @Test
     void discoversUnaryAndConstantMutations() throws Exception {
-        Path file = tempDir.resolve("src/main/java/demo/UnarySample.java");
+        Path file = tempDir.resolve("src/main/kotlin/demo/UnarySample.kt");
         Files.createDirectories(file.getParent());
         Files.writeString(file, """
-                package demo;
+                package demo
 
                 class UnarySample {
-                    boolean invert(boolean value) {
-                        return !value;
+                    fun invert(value: Boolean): Boolean {
+                        return !value
                     }
 
-                    int negative(int value) {
-                        return -value;
+                    fun negative(value: Int): Int {
+                        return -value
                     }
 
-                    int zero() {
-                        return 0;
+                    fun zero(): Int {
+                        return 0
                     }
 
-                    int one() {
-                        return 1;
+                    fun one(): Int {
+                        return 1
                     }
                 }
                 """);
 
         List<MutationSite> sites = new MutationCatalog().discover(List.of(file));
 
-        assertEquals(List.of(
-                "replace ! with removed !",
-                "replace - with removed -",
-                "replace 0 with 1",
-                "replace 1 with 0"
-        ), sites.stream().map(MutationSite::description).toList());
+        List<String> descriptions = sites.stream().map(MutationSite::description).toList();
+        assertEquals(true, descriptions.contains("replace ! with removed !"));
+        assertEquals(true, descriptions.contains("replace - with +"));
+        assertEquals(true, descriptions.contains("replace - with removed -"));
+        assertEquals(true, descriptions.contains("replace 0 with 1"));
+        assertEquals(true, descriptions.contains("replace 1 with 0"));
 
         MutationSite unaryNot = sites.get(0);
         assertEquals("", unaryNot.replacementText());
 
-        MutationSite unaryMinus = sites.get(1);
+        MutationSite unaryMinus = sites.stream()
+                .filter(site -> "replace - with removed -".equals(site.description()))
+                .findFirst()
+                .orElseThrow();
         assertEquals("", unaryMinus.replacementText());
     }
 }

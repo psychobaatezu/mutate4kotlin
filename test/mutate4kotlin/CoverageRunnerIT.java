@@ -50,7 +50,7 @@ class CoverageRunnerIT {
 
         CoverageRun run = new CoverageRunner(new ProcessCommandExecutor()).generateCoverage(projectRoot);
 
-        assertTrue(run.report().covers("mutate4kotlin/Sample.java", 5));
+        assertTrue(run.report().covers("mutate4kotlin/Sample.kt", 5));
     }
 
     @Test
@@ -64,7 +64,7 @@ class CoverageRunnerIT {
         assertTrue(reused.reused());
         assertTrue(reused.reportAvailable());
         assertEquals(null, reused.baseline());
-        assertTrue(reused.report().covers("mutate4kotlin/Sample.java", 5));
+        assertTrue(reused.report().covers("mutate4kotlin/Sample.kt", 5));
     }
 
     @Test
@@ -76,6 +76,6 @@ class CoverageRunnerIT {
         assertTrue(reused.reused());
         assertFalse(reused.reportAvailable());
         assertEquals(null, reused.baseline());
-        assertFalse(reused.report().covers("mutate4kotlin/Sample.java", 5));
+        assertFalse(reused.report().covers("mutate4kotlin/Sample.kt", 5));
     }
 }

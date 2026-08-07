@@ -35,11 +35,17 @@ final class TestProjectFactory {
                   <artifactId>demo</artifactId>
                   <version>1.0-SNAPSHOT</version>
                   <properties>
+                    <kotlin.version>2.0.21</kotlin.version>
                     <maven.compiler.source>17</maven.compiler.source>
                     <maven.compiler.target>17</maven.compiler.target>
                     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
                   </properties>
                   <dependencies>
+                    <dependency>
+                      <groupId>org.jetbrains.kotlin</groupId>
+                      <artifactId>kotlin-stdlib</artifactId>
+                      <version>${kotlin.version}</version>
+                    </dependency>
                     <dependency>
                       <groupId>org.junit.jupiter</groupId>
                       <artifactId>junit-jupiter</artifactId>
@@ -48,9 +54,38 @@ final class TestProjectFactory {
                     </dependency>
                   </dependencies>
                   <build>
-                    <sourceDirectory>${project.basedir}/src/mutate4kotlin</sourceDirectory>
-                    <testSourceDirectory>${project.basedir}/test/mutate4kotlin</testSourceDirectory>
+                    <sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
+                    <testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
                     <plugins>
+                      <plugin>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-plugin</artifactId>
+                        <version>${kotlin.version}</version>
+                        <executions>
+                          <execution>
+                            <id>compile</id>
+                            <goals>
+                              <goal>compile</goal>
+                            </goals>
+                            <configuration>
+                              <sourceDirs>
+                                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
+                              </sourceDirs>
+                            </configuration>
+                          </execution>
+                          <execution>
+                            <id>test-compile</id>
+                            <goals>
+                              <goal>test-compile</goal>
+                            </goals>
+                            <configuration>
+                              <sourceDirs>
+                                <sourceDir>${project.basedir}/src/test/kotlin</sourceDir>
+                              </sourceDirs>
+                            </configuration>
+                          </execution>
+                        </executions>
+                      </plugin>
                       <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
@@ -60,30 +95,29 @@ final class TestProjectFactory {
                   </build>
                 </project>
                 """);
-        Path sourceRoot = projectRoot.resolve("src/mutate4kotlin");
-        Path testRoot = projectRoot.resolve("test/mutate4kotlin");
+        Path sourceRoot = projectRoot.resolve("src/main/kotlin/mutate4kotlin");
+        Path testRoot = projectRoot.resolve("src/test/kotlin/mutate4kotlin");
         Files.createDirectories(sourceRoot);
         Files.createDirectories(testRoot);
-        Files.writeString(sourceRoot.resolve("Sample.java"), """
-                package mutate4kotlin;
+        Files.writeString(sourceRoot.resolve("Sample.kt"), """
+                package mutate4kotlin
 
                 class Sample {
-                    boolean truth() {
-                        return true;
+                    fun truth(): Boolean {
+                        return true
                     }
                 }
                 """);
-        Files.writeString(testRoot.resolve("SampleTest.java"), """
-                package mutate4kotlin;
+        Files.writeString(testRoot.resolve("SampleTest.kt"), """
+                package mutate4kotlin
 
-                import org.junit.jupiter.api.Test;
-
-                import static org.junit.jupiter.api.Assertions.assertTrue;
+                import org.junit.jupiter.api.Assertions.assertTrue
+                import org.junit.jupiter.api.Test
 
                 class SampleTest {
                     @Test
-                    void truthIsTrue() {
-                        assertTrue(new Sample().truth());
+                    fun truthIsTrue() {
+                        assertTrue(Sample().truth())
                     }
                 }
                 """);

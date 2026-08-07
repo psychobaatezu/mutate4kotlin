@@ -28,18 +28,18 @@ final class UsageText {
     static String text() {
         return """
                 Usage:
-                  mutate4kotlin <file.java>                      Mutate one Java source file
-                  mutate4kotlin <file.java> --scan              Print mutation-site scan without running tests
-                  mutate4kotlin <file.java> --update-manifest   Write embedded manifest without running tests
-                  mutate4kotlin <file.java> --reuse-coverage    Reuse existing JaCoCo coverage without refreshing it
-                  mutate4kotlin <file.java> --lines 12,18       Restrict mutations to specific source lines
-                  mutate4kotlin <file.java> --since-last-run    Mutate only scopes changed since embedded manifest
-                  mutate4kotlin <file.java> --mutate-all        Ignore embedded manifest and mutate all covered sites
-                  mutate4kotlin <file.java> --mutation-warning 50 Warn when selected mutation count exceeds threshold
-                  mutate4kotlin <file.java> --max-workers 4     Limit parallel worker count
-                  mutate4kotlin <file.java> --timeout-factor 15 Set mutant timeout as baseline multiplier
-                  mutate4kotlin <file.java> --test-command CMD  Override the test command used for baseline and mutants
-                  mutate4kotlin <file.java> --verbose           Print live worker progress
+                  mutate4kotlin <file.kt>                        Mutate one Kotlin source file
+                  mutate4kotlin <file.kt> --scan                Print mutation-site scan without running tests
+                  mutate4kotlin <file.kt> --update-manifest     Write embedded manifest without running tests
+                  mutate4kotlin <file.kt> --reuse-coverage      Reuse existing JaCoCo coverage without refreshing it
+                  mutate4kotlin <file.kt> --lines 12,18         Restrict mutations to specific source lines
+                  mutate4kotlin <file.kt> --since-last-run      Mutate only scopes changed since embedded manifest
+                  mutate4kotlin <file.kt> --mutate-all          Ignore embedded manifest and mutate all covered sites
+                  mutate4kotlin <file.kt> --mutation-warning 50 Warn when selected mutation count exceeds threshold
+                  mutate4kotlin <file.kt> --max-workers 4       Limit parallel worker count
+                  mutate4kotlin <file.kt> --timeout-factor 15   Set mutant timeout as baseline multiplier
+                  mutate4kotlin <file.kt> --test-command CMD    Override the test command used for baseline and mutants
+                  mutate4kotlin <file.kt> --verbose             Print live worker progress
                   mutate4kotlin --help                          Print this help message
                 """;
     }

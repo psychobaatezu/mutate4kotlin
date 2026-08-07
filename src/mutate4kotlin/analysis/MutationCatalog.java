@@ -207,7 +207,7 @@ public final class MutationCatalog {
             int expressionStart = matcher.start(1);
             int expressionEnd = matcher.end(1);
             String expression = source.substring(expressionStart, expressionEnd).trim();
-            if (expression.isBlank() || "null".equals(expression)) {
+            if (shouldSkipNullReplacementExpression(expression)) {
                 continue;
             }
             int leading = expressionStart;
@@ -218,8 +218,35 @@ public final class MutationCatalog {
             while (trailing > leading && Character.isWhitespace(source.charAt(trailing - 1))) {
                 trailing--;
             }
-            sites.add(buildSite(file, lineNumberTable, scopes, leading, trailing, source.substring(leading, trailing), "null"));
+            String candidate = source.substring(leading, trailing);
+            if (shouldSkipNullReplacementExpression(candidate.trim())) {
+                continue;
+            }
+            sites.add(buildSite(file, lineNumberTable, scopes, leading, trailing, candidate, "null"));
         }
+    }
+
+    private boolean shouldSkipNullReplacementExpression(String expression) {
+        if (expression.isBlank() || "null".equals(expression) || "}".equals(expression)) {
+            return true;
+        }
+        if ("true".equals(expression) || "false".equals(expression)) {
+            return true;
+        }
+        if (expression.matches("[-+]?\\d+(\\.\\d+)?")) {
+            return true;
+        }
+        if (expression.contains("==") || expression.contains("!=")
+                || expression.contains("<=") || expression.contains(">=")
+                || expression.contains("&&") || expression.contains("||")
+                || expression.contains(" + ") || expression.contains(" - ")
+                || expression.contains(" * ") || expression.contains(" / ")) {
+            return true;
+        }
+        if (expression.startsWith("!") || expression.startsWith("-")) {
+            return true;
+        }
+        return false;
     }
 
     private void addTokenReplacement(Path file,

@@ -35,20 +35,20 @@ class SourceFileFinderTest {
     }
 
     @Test
-    void findsAndSortsJavaFilesUnderSrcOnly() throws Exception {
+    void findsAndSortsKotlinFilesUnderSrcOnly() throws Exception {
         Path src = tempDir.resolve("src/mutate4kotlin");
         Files.createDirectories(src);
-        Path first = src.resolve("A.java");
-        Path second = src.resolve("nested/B.java");
-        Path ignored = tempDir.resolve("test/mutate4kotlin/C.java");
-        Path notJava = src.resolve("notes.txt");
+        Path first = src.resolve("A.kt");
+        Path second = src.resolve("nested/B.kt");
+        Path ignored = tempDir.resolve("test/mutate4kotlin/C.kt");
+        Path notKotlin = src.resolve("notes.txt");
 
         Files.createDirectories(second.getParent());
         Files.createDirectories(ignored.getParent());
         Files.writeString(second, "class B {}");
         Files.writeString(first, "class A {}");
         Files.writeString(ignored, "class C {}");
-        Files.writeString(notJava, "ignore");
+        Files.writeString(notKotlin, "ignore");
 
         assertEquals(List.of(first, second), SourceFileFinder.findAllJavaFilesUnderSrc(tempDir));
     }

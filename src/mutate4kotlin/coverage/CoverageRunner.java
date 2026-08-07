@@ -45,11 +45,13 @@ public class CoverageRunner {
         List<String> command = new ArrayList<>();
         command.add("mvn");
         command.add("-q");
-        command.add("test");
         if (hasProjectJacocoPlugin(projectRoot)) {
+            command.add("org.jacoco:jacoco-maven-plugin:prepare-agent");
+            command.add("test");
             command.add("org.jacoco:jacoco-maven-plugin:report");
         } else {
             command.add("org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent");
+            command.add("test");
             command.add("org.jacoco:jacoco-maven-plugin:0.8.12:report");
         }
         CommandResult result = executor.run(command, projectRoot, COVERAGE_TIMEOUT_MILLIS);

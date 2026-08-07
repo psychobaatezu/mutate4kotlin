@@ -30,15 +30,15 @@ class CliArgumentsParserTest {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> CliArgumentsParser.parse(new String[0]));
 
-        assertEquals("mutate4kotlin requires exactly one Java file", error.getMessage());
+        assertEquals("mutate4kotlin requires exactly one Kotlin file", error.getMessage());
     }
 
     @Test
     void parsesSingleExplicitFileArgument() {
-        CliArguments parsed = CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java"});
+        CliArguments parsed = CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt"});
 
         assertEquals(CliMode.EXPLICIT_FILES, parsed.mode());
-        assertEquals(List.of("src/main/java/demo/App.java"), parsed.fileArgs());
+        assertEquals(List.of("src/main/kotlin/demo/App.kt"), parsed.fileArgs());
         assertEquals(Set.of(), parsed.lines());
         assertEquals(false, parsed.scan());
         assertEquals(false, parsed.updateManifest());
@@ -55,7 +55,7 @@ class CliArgumentsParserTest {
     @Test
     void parsesLineFilterAndTimeoutFactor() {
         CliArguments parsed = CliArgumentsParser.parse(new String[]{
-                "src/main/java/demo/App.java", "--lines", "12,18", "--timeout-factor", "15"
+                "src/main/kotlin/demo/App.kt", "--lines", "12,18", "--timeout-factor", "15"
         });
 
         assertEquals(CliMode.EXPLICIT_FILES, parsed.mode());
@@ -66,7 +66,7 @@ class CliArgumentsParserTest {
     @Test
     void parsesMaxWorkers() {
         CliArguments parsed = CliArgumentsParser.parse(new String[]{
-                "src/main/java/demo/App.java", "--max-workers", "4"
+                "src/main/kotlin/demo/App.kt", "--max-workers", "4"
         });
 
         assertEquals(4, parsed.maxWorkers());
@@ -75,7 +75,7 @@ class CliArgumentsParserTest {
     @Test
     void parsesVerboseFlag() {
         CliArguments parsed = CliArgumentsParser.parse(new String[]{
-                "src/main/java/demo/App.java", "--verbose"
+                "src/main/kotlin/demo/App.kt", "--verbose"
         });
 
         assertEquals(true, parsed.verbose());
@@ -84,7 +84,7 @@ class CliArgumentsParserTest {
     @Test
     void parsesScanFlag() {
         CliArguments parsed = CliArgumentsParser.parse(new String[]{
-                "src/main/java/demo/App.java", "--scan"
+                "src/main/kotlin/demo/App.kt", "--scan"
         });
 
         assertEquals(true, parsed.scan());
@@ -93,7 +93,7 @@ class CliArgumentsParserTest {
     @Test
     void parsesUpdateManifestFlag() {
         CliArguments parsed = CliArgumentsParser.parse(new String[]{
-                "src/main/java/demo/App.java", "--update-manifest"
+                "src/main/kotlin/demo/App.kt", "--update-manifest"
         });
 
         assertEquals(true, parsed.updateManifest());
@@ -102,7 +102,7 @@ class CliArgumentsParserTest {
     @Test
     void parsesReuseCoverageFlag() {
         CliArguments parsed = CliArgumentsParser.parse(new String[]{
-                "src/main/java/demo/App.java", "--reuse-coverage"
+                "src/main/kotlin/demo/App.kt", "--reuse-coverage"
         });
 
         assertEquals(true, parsed.reuseCoverage());
@@ -111,7 +111,7 @@ class CliArgumentsParserTest {
     @Test
     void parsesDifferentialFlagsAndTestCommand() {
         CliArguments parsed = CliArgumentsParser.parse(new String[]{
-                "src/main/java/demo/App.java",
+                "src/main/kotlin/demo/App.kt",
                 "--since-last-run",
                 "--mutation-warning", "75",
                 "--test-command", "mvn test -DexcludeTags=no-mutate"
@@ -126,7 +126,7 @@ class CliArgumentsParserTest {
     @Test
     void parsesMutateAllFlag() {
         CliArguments parsed = CliArgumentsParser.parse(new String[]{
-                "src/main/java/demo/App.java", "--mutate-all"
+                "src/main/kotlin/demo/App.kt", "--mutate-all"
         });
 
         assertEquals(true, parsed.mutateAll());
@@ -142,9 +142,9 @@ class CliArgumentsParserTest {
     @Test
     void rejectsMultipleFileArguments() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "src/main/java/demo/Other.java"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "src/main/kotlin/demo/Other.kt"}));
 
-        assertEquals("mutate4kotlin accepts exactly one Java file", error.getMessage());
+        assertEquals("mutate4kotlin accepts exactly one Kotlin file", error.getMessage());
     }
 
     @Test
@@ -152,21 +152,21 @@ class CliArgumentsParserTest {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> CliArgumentsParser.parse(new String[]{"--lines", "12"}));
 
-        assertEquals("mutate4kotlin requires exactly one Java file", error.getMessage());
+        assertEquals("mutate4kotlin requires exactly one Kotlin file", error.getMessage());
     }
 
     @Test
-    void rejectsNonJavaTarget() {
+    void rejectsNonKotlinTarget() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> CliArgumentsParser.parse(new String[]{"crap4java"}));
 
-        assertEquals("mutate4kotlin target must be a .java file", error.getMessage());
+        assertEquals("mutate4kotlin target must be a .kt file", error.getMessage());
     }
 
     @Test
     void rejectsNonPositiveTimeoutFactor() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--timeout-factor", "0"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--timeout-factor", "0"}));
 
         assertEquals("--timeout-factor must be a positive integer", error.getMessage());
     }
@@ -174,7 +174,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsNonPositiveMaxWorkers() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--max-workers", "0"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--max-workers", "0"}));
 
         assertEquals("--max-workers must be a positive integer", error.getMessage());
     }
@@ -182,7 +182,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsUnknownOption() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--bogus"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--bogus"}));
 
         assertEquals("Unknown option: --bogus", error.getMessage());
     }
@@ -190,7 +190,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsLinesCombinedWithSinceLastRun() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--lines", "5", "--since-last-run"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--lines", "5", "--since-last-run"}));
 
         assertEquals("--lines may not be combined with --since-last-run", error.getMessage());
     }
@@ -198,7 +198,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsLinesCombinedWithMutateAll() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--lines", "5", "--mutate-all"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--lines", "5", "--mutate-all"}));
 
         assertEquals("--lines may not be combined with --mutate-all", error.getMessage());
     }
@@ -206,7 +206,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsSinceLastRunCombinedWithMutateAll() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--since-last-run", "--mutate-all"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--since-last-run", "--mutate-all"}));
 
         assertEquals("--since-last-run may not be combined with --mutate-all", error.getMessage());
     }
@@ -214,7 +214,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsScanCombinedWithSinceLastRun() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--scan", "--since-last-run"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--scan", "--since-last-run"}));
 
         assertEquals("--scan may not be combined with --since-last-run", error.getMessage());
     }
@@ -222,7 +222,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsScanCombinedWithUpdateManifest() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--scan", "--update-manifest"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--scan", "--update-manifest"}));
 
         assertEquals("--scan may not be combined with --update-manifest", error.getMessage());
     }
@@ -230,7 +230,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsScanCombinedWithReuseCoverage() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--scan", "--reuse-coverage"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--scan", "--reuse-coverage"}));
 
         assertEquals("--scan may not be combined with --reuse-coverage", error.getMessage());
     }
@@ -238,7 +238,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsUpdateManifestCombinedWithSinceLastRun() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--update-manifest", "--since-last-run"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--update-manifest", "--since-last-run"}));
 
         assertEquals("--update-manifest may not be combined with --since-last-run", error.getMessage());
     }
@@ -246,7 +246,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsUpdateManifestCombinedWithMutateAll() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--update-manifest", "--mutate-all"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--update-manifest", "--mutate-all"}));
 
         assertEquals("--update-manifest may not be combined with --mutate-all", error.getMessage());
     }
@@ -254,7 +254,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsUpdateManifestCombinedWithReuseCoverage() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--update-manifest", "--reuse-coverage"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--update-manifest", "--reuse-coverage"}));
 
         assertEquals("--update-manifest may not be combined with --reuse-coverage", error.getMessage());
     }
@@ -262,7 +262,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsUpdateManifestCombinedWithLines() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--update-manifest", "--lines", "5"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--update-manifest", "--lines", "5"}));
 
         assertEquals("--update-manifest may not be combined with --lines", error.getMessage());
     }
@@ -270,7 +270,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsScanCombinedWithMutateAll() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--scan", "--mutate-all"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--scan", "--mutate-all"}));
 
         assertEquals("--scan may not be combined with --mutate-all", error.getMessage());
     }
@@ -278,7 +278,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsMissingLinesValue() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--lines"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--lines"}));
 
         assertEquals("--lines requires a value", error.getMessage());
     }
@@ -286,7 +286,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsBlankLinesValue() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--lines", ",,"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--lines", ",,"}));
 
         assertEquals("--lines requires at least one line number", error.getMessage());
     }
@@ -294,7 +294,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsNonNumericLinesValue() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--lines", "a"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--lines", "a"}));
 
         assertEquals("--lines must be a positive integer", error.getMessage());
     }
@@ -302,7 +302,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsMissingTimeoutFactorValue() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--timeout-factor"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--timeout-factor"}));
 
         assertEquals("--timeout-factor requires a value", error.getMessage());
     }
@@ -310,7 +310,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsMissingMaxWorkersValue() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--max-workers"}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--max-workers"}));
 
         assertEquals("--max-workers requires a value", error.getMessage());
     }
@@ -318,7 +318,7 @@ class CliArgumentsParserTest {
     @Test
     void rejectsBlankTestCommand() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
-                () -> CliArgumentsParser.parse(new String[]{"src/main/java/demo/App.java", "--test-command", "   "}));
+                () -> CliArgumentsParser.parse(new String[]{"src/main/kotlin/demo/App.kt", "--test-command", "   "}));
 
         assertEquals("--test-command must not be blank", error.getMessage());
     }

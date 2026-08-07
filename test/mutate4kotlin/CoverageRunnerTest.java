@@ -42,7 +42,7 @@ class CoverageRunnerTest {
         assertEquals(0, run.baseline().exitCode());
         assertFalse(run.reused());
         assertTrue(run.reportAvailable());
-        assertTrue(run.report().covers("mutate4kotlin/Sample.java", 5));
+        assertTrue(run.report().covers("mutate4kotlin/Sample.kt", 5));
     }
 
     @Test
@@ -56,7 +56,7 @@ class CoverageRunnerTest {
         assertEquals(null, run.baseline());
         assertTrue(run.reused());
         assertTrue(run.reportAvailable());
-        assertTrue(run.report().covers("mutate4kotlin/Sample.java", 5));
+        assertTrue(run.report().covers("mutate4kotlin/Sample.kt", 5));
     }
 
     @Test
@@ -69,6 +69,6 @@ class CoverageRunnerTest {
         assertEquals(null, run.baseline());
         assertTrue(run.reused());
         assertFalse(run.reportAvailable());
-        assertFalse(run.report().covers("mutate4kotlin/Sample.java", 5));
+        assertFalse(run.report().covers("mutate4kotlin/Sample.kt", 5));
     }
 }

@@ -31,29 +31,29 @@ class ChangedFileDetectorTest {
     Path tempDir;
 
     @Test
-    void findsModifiedAndUntrackedJavaFilesUnderSrc() throws Exception {
+    void findsModifiedAndUntrackedKotlinFilesUnderSrc() throws Exception {
         run("git init", tempDir);
         run("git config user.email test@example.com", tempDir);
         run("git config user.name test", tempDir);
 
-        Path src = tempDir.resolve("src/main/java/demo");
+        Path src = tempDir.resolve("src/main/kotlin/demo");
         Files.createDirectories(src);
-        Path tracked = src.resolve("Tracked.java");
+        Path tracked = src.resolve("Tracked.kt");
         Files.writeString(tracked, "class Tracked {}\n");
 
         run("git add .", tempDir);
         run("git commit -m init", tempDir);
 
         Files.writeString(tracked, "class Tracked { int x = 1; }\n");
-        Path untracked = src.resolve("NewFile.java");
+        Path untracked = src.resolve("NewFile.kt");
         Files.writeString(untracked, "class NewFile {}\n");
         Files.writeString(tempDir.resolve("README.md"), "ignore me\n");
 
         List<Path> changed = ChangedFileDetector.changedJavaFilesUnderSrc(tempDir);
 
         assertEquals(List.of(
-                tempDir.resolve("src/main/java/demo/NewFile.java"),
-                tempDir.resolve("src/main/java/demo/Tracked.java")
+                tempDir.resolve("src/main/kotlin/demo/NewFile.kt"),
+                tempDir.resolve("src/main/kotlin/demo/Tracked.kt")
         ), changed);
     }
 
