@@ -7,10 +7,27 @@ import mutate4kotlin.model.*;
 
 import mutate4kotlin.*;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 final class ProcessRunnerSupport {
+
+    ProcessExecution run(Process process, long timeoutMillis, long startNanos) throws InterruptedException {
+        ProcessOutputReader outputReader = ProcessOutputReader.start(process);
+        try {
+            boolean timedOut = !waitFor(process, timeoutMillis);
+            int exitCode = exitCode(process, timedOut);
+            if (timedOut) {
+                outputReader.close();
+            }
+            String output = outputReader.await(timedOut ? 1_000L : 0L);
+            long durationMillis = (System.nanoTime() - startNanos) / 1_000_000L;
+            return new ProcessExecution(exitCode, output, durationMillis, timedOut);
+        } catch (InterruptedException exception) {
+            process.destroyForcibly();
+            outputReader.close();
+            throw exception;
+        }
+    }
 
     boolean waitFor(Process process, long timeoutMillis) throws InterruptedException {
         if (timeoutMillis <= 0) {
@@ -29,13 +46,9 @@ final class ProcessRunnerSupport {
         return 124;
     }
 
-    String readOutput(Process process) {
-        try {
-            return new String(process.getInputStream().readAllBytes());
-        } catch (IOException ex) {
-            return "";
-        }
-    }
+}
+
+record ProcessExecution(int exitCode, String output, long durationMillis, boolean timedOut) {
 }
 
 /* mutate4kotlin-manifest

@@ -31,6 +31,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProcessTestCommandExecutorTest {
 
+    private static final String LARGE_OUTPUT_COMMAND = "awk 'BEGIN { for (i = 0; i < 200000; i++) printf \"Coruscant\" }'";
+
     @TempDir
     Path tempDir;
 
@@ -86,6 +88,15 @@ class ProcessTestCommandExecutorTest {
 
         assertEquals(0, result.exitCode());
         assertEquals("ok", result.output());
+        assertFalse(result.timedOut());
+    }
+
+    @Test
+    void capturesOutputLargerThanTheProcessPipeBuffer() throws Exception {
+        TestRun result = new ProcessTestCommandExecutor().withCommand(LARGE_OUTPUT_COMMAND).runTests(tempDir, 0);
+
+        assertEquals(0, result.exitCode());
+        assertEquals(1_800_000, result.output().length());
         assertFalse(result.timedOut());
     }
 

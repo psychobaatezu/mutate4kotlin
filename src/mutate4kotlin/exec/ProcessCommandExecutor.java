@@ -10,7 +10,6 @@ import mutate4kotlin.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public final class ProcessCommandExecutor {
 
@@ -22,11 +21,8 @@ public final class ProcessCommandExecutor {
     public CommandResult run(List<String> command, Path workingDirectory, long timeoutMillis) throws IOException, InterruptedException {
         long start = System.nanoTime();
         Process process = startProcess(command, workingDirectory);
-        boolean timedOut = !support.waitFor(process, timeoutMillis);
-        int exitCode = support.exitCode(process, timedOut);
-        String output = support.readOutput(process);
-        long durationMillis = (System.nanoTime() - start) / 1_000_000L;
-        return new CommandResult(exitCode, output, durationMillis, timedOut);
+        ProcessExecution execution = support.run(process, timeoutMillis, start);
+        return new CommandResult(execution.exitCode(), execution.output(), execution.durationMillis(), execution.timedOut());
     }
 
     private Process startProcess(List<String> command, Path workingDirectory) throws IOException {
