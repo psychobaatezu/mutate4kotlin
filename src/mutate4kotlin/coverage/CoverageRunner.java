@@ -10,9 +10,12 @@ import mutate4kotlin.exec.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CoverageRunner {
 
@@ -45,12 +48,11 @@ public class CoverageRunner {
         List<String> command = new ArrayList<>();
         command.add("mvn");
         command.add("-q");
+        command.add("-DargLine=" + jacocoAgentArgument(projectRoot, jacocoExec));
         if (hasProjectJacocoPlugin(projectRoot)) {
-            command.add("org.jacoco:jacoco-maven-plugin:prepare-agent");
             command.add("test");
             command.add("org.jacoco:jacoco-maven-plugin:report");
         } else {
-            command.add("org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent");
             command.add("test");
             command.add("org.jacoco:jacoco-maven-plugin:0.8.12:report");
         }
@@ -73,6 +75,25 @@ public class CoverageRunner {
         }
         String pom = Files.readString(pomFile);
         return pom.contains("<artifactId>jacoco-maven-plugin</artifactId>");
+    }
+
+    private String jacocoAgentArgument(Path projectRoot, Path jacocoExec) throws Exception {
+        String pom = Files.readString(projectRoot.resolve("pom.xml"));
+        String version = propertyValue(pom, "jacoco.version");
+        if (version == null) {
+            version = "0.8.12";
+        }
+        Path agent = Paths.get(System.getProperty("user.home"), ".m2", "repository", "org", "jacoco",
+                "org.jacoco.agent", version, "org.jacoco.agent-" + version + "-runtime.jar");
+        if (!Files.exists(agent)) {
+            throw new IllegalStateException("JaCoCo agent is not available: " + agent);
+        }
+        return "-javaagent:" + agent + "=destfile=" + jacocoExec;
+    }
+
+    private String propertyValue(String pom, String property) {
+        Matcher matcher = Pattern.compile("<" + Pattern.quote(property) + ">([^<]+)</" + Pattern.quote(property) + ">").matcher(pom);
+        return matcher.find() ? matcher.group(1).trim() : null;
     }
 }
 

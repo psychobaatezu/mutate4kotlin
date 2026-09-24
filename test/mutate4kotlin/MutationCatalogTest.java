@@ -117,6 +117,8 @@ class MutationCatalogTest {
 
         List<String> descriptions = sites.stream().map(MutationSite::description).toList();
         assertEquals(true, descriptions.contains("replace > with >="));
+        assertEquals(false, descriptions.contains("replace < with <="));
+        assertEquals(false, descriptions.contains("replace <= with <"));
     }
 
     @Test

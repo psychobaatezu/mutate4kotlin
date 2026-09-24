@@ -291,7 +291,50 @@ public final class MutationCatalog {
         while (matcher.find()) {
             ranges.add(new IntRange(matcher.start(), matcher.end()));
         }
+        addGenericTypeRanges(sanitized, ranges);
         return ranges;
+    }
+
+    private void addGenericTypeRanges(String sanitized, List<IntRange> ranges) {
+        for (int start = 0; start < sanitized.length(); start++) {
+            if (sanitized.charAt(start) != '<' || start == 0) {
+                continue;
+            }
+            int end = findGenericTypeEnd(sanitized, start);
+            if (end < 0) {
+                continue;
+            }
+            String content = sanitized.substring(start + 1, end);
+            if (!content.isBlank() && content.matches("[A-Za-z0-9_.,? :<>\\[\\]]+")) {
+                ranges.add(new IntRange(start, end + 1));
+                start = end;
+            }
+        }
+    }
+
+    private int findGenericTypeEnd(String text, int start) {
+        int depth = 0;
+        for (int index = start; index < text.length(); index++) {
+            char character = text.charAt(index);
+            if (character == '\n' || character == ';' || character == '{') {
+                return -1;
+            }
+            if (character == '<') {
+                depth++;
+            } else if (character == '>') {
+                depth--;
+                if (depth == 0) {
+                    int next = index + 1;
+                    while (next < text.length() && Character.isWhitespace(text.charAt(next))) {
+                        next++;
+                    }
+                    return next < text.length() && ")(:,.=!?[]{".indexOf(text.charAt(next)) >= 0
+                            ? index
+                            : -1;
+                }
+            }
+        }
+        return -1;
     }
 
     private boolean isInsideIgnoredRange(int offset, List<IntRange> ranges) {
