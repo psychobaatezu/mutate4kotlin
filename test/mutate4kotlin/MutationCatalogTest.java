@@ -122,6 +122,23 @@ class MutationCatalogTest {
     }
 
     @Test
+    void ignoresGenericTypeArgumentsOnClassDeclarations() throws Exception {
+        Path file = tempDir.resolve("src/main/kotlin/demo/Processor.kt");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, """
+                package demo
+
+                interface UserProvisioningProcessor<T>
+
+                class TextToEmailProcessor<T> : UserProvisioningProcessor<T>
+                """);
+
+        List<MutationSite> sites = new MutationCatalog().discover(List.of(file));
+
+        assertEquals(List.of(), sites);
+    }
+
+    @Test
     void discoversArithmeticLogicalAndNullReplacementMutations() throws Exception {
         Path file = tempDir.resolve("src/main/kotlin/demo/Expanded.kt");
         Files.createDirectories(file.getParent());

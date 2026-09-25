@@ -291,8 +291,30 @@ public final class MutationCatalog {
         while (matcher.find()) {
             ranges.add(new IntRange(matcher.start(), matcher.end()));
         }
+        addDeclarationGenericRanges(sanitized, ranges);
         addGenericTypeRanges(sanitized, ranges);
         return ranges;
+    }
+
+    private void addDeclarationGenericRanges(String sanitized, List<IntRange> ranges) {
+        Matcher declaration = Pattern.compile("(?m)^[^\\n]*(?:class|interface|object)\\b").matcher(sanitized);
+        while (declaration.find()) {
+            int end = declarationEnd(sanitized, declaration.end());
+            String declarationText = sanitized.substring(declaration.start(), end);
+            Matcher generic = Pattern.compile("<(?:[A-Za-z0-9_.,? :<>\\[\\]]+)>").matcher(declarationText);
+            while (generic.find()) {
+                ranges.add(new IntRange(declaration.start() + generic.start(), declaration.start() + generic.end()));
+            }
+        }
+    }
+
+    private int declarationEnd(String text, int start) {
+        int end = text.indexOf('{', start);
+        int blankLine = text.indexOf("\n\n", start);
+        if (end < 0) {
+            return blankLine < 0 ? text.length() : blankLine;
+        }
+        return blankLine >= 0 && blankLine < end ? blankLine : end;
     }
 
     private void addGenericTypeRanges(String sanitized, List<IntRange> ranges) {
