@@ -139,6 +139,54 @@ class MutationCatalogTest {
     }
 
     @Test
+    void ignoresStarProjectionsAndBoundedGenericFunctionParameters() throws Exception {
+        Path file = tempDir.resolve("src/main/kotlin/demo/GenericFunctions.kt");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, """
+                package demo
+
+                class GenericFunctions {
+                    fun consume(values: Map<*, *>): Int = values.size
+
+                    fun <T : Any> identity(value: T): T = value
+
+                    fun <T : Comparable<T>> minimum(value: T): T = value
+                }
+                """);
+
+        List<MutationSite> sites = new MutationCatalog().discover(List.of(file));
+
+        assertEquals(List.of(), sites);
+    }
+
+    @Test
+    void doesNotUseNextLineAsExpressionAfterBareReturn() throws Exception {
+        Path file = tempDir.resolve("src/main/kotlin/demo/BareReturn.kt");
+        Files.createDirectories(file.getParent());
+        Files.writeString(file, """
+                package demo
+
+                class BareReturn {
+                    fun handle(failed: Boolean) {
+                        if (failed) return
+                        try {
+                            work()
+                        } finally {
+                            cleanup()
+                        }
+                    }
+
+                    fun work() {}
+                    fun cleanup() {}
+                }
+                """);
+
+        List<MutationSite> sites = new MutationCatalog().discover(List.of(file));
+
+        assertEquals(false, sites.stream().anyMatch(site -> site.originalText().startsWith("try {")));
+    }
+
+    @Test
     void discoversArithmeticLogicalAndNullReplacementMutations() throws Exception {
         Path file = tempDir.resolve("src/main/kotlin/demo/Expanded.kt");
         Files.createDirectories(file.getParent());

@@ -201,7 +201,7 @@ public final class MutationCatalog {
                                          LineNumberTable lineNumberTable,
                                          List<MutationScope> scopes,
                                          List<MutationSite> sites) {
-        Pattern returnExpression = Pattern.compile("\\breturn\\s+([^;\\n]+)");
+        Pattern returnExpression = Pattern.compile("\\breturn[ \\t]+(?=[^ \\t\\r\\n])([^;\\r\\n]+)");
         Matcher matcher = returnExpression.matcher(sanitized);
         while (matcher.find()) {
             int expressionStart = matcher.start(1);
@@ -292,6 +292,7 @@ public final class MutationCatalog {
             ranges.add(new IntRange(matcher.start(), matcher.end()));
         }
         addDeclarationGenericRanges(sanitized, ranges);
+        addFunctionGenericRanges(sanitized, ranges);
         addGenericTypeRanges(sanitized, ranges);
         return ranges;
     }
@@ -317,6 +318,17 @@ public final class MutationCatalog {
         return blankLine >= 0 && blankLine < end ? blankLine : end;
     }
 
+    private void addFunctionGenericRanges(String sanitized, List<IntRange> ranges) {
+        Matcher function = Pattern.compile("\\bfun\\s*<").matcher(sanitized);
+        while (function.find()) {
+            int start = function.end() - 1;
+            int end = matchingAngleEnd(sanitized, start, true);
+            if (end >= 0) {
+                ranges.add(new IntRange(start, end + 1));
+            }
+        }
+    }
+
     private void addGenericTypeRanges(String sanitized, List<IntRange> ranges) {
         for (int start = 0; start < sanitized.length(); start++) {
             if (sanitized.charAt(start) != '<' || start == 0) {
@@ -327,7 +339,7 @@ public final class MutationCatalog {
                 continue;
             }
             String content = sanitized.substring(start + 1, end);
-            if (!content.isBlank() && content.matches("[A-Za-z0-9_.,? :<>\\[\\]]+")) {
+            if (isGenericTypeContent(content)) {
                 ranges.add(new IntRange(start, end + 1));
                 start = end;
             }
@@ -335,10 +347,21 @@ public final class MutationCatalog {
     }
 
     private int findGenericTypeEnd(String text, int start) {
+        int end = matchingAngleEnd(text, start, false);
+        if (end < 0) {
+            return -1;
+        }
+        int next = nextNonWhitespace(text, end + 1);
+        return next < text.length() && ")(:,.=!?[]{".indexOf(text.charAt(next)) >= 0
+                ? end
+                : -1;
+    }
+
+    private int matchingAngleEnd(String text, int start, boolean allowLineBreaks) {
         int depth = 0;
         for (int index = start; index < text.length(); index++) {
             char character = text.charAt(index);
-            if (character == '\n' || character == ';' || character == '{') {
+            if ((!allowLineBreaks && character == '\n') || character == ';' || character == '{') {
                 return -1;
             }
             if (character == '<') {
@@ -346,17 +369,41 @@ public final class MutationCatalog {
             } else if (character == '>') {
                 depth--;
                 if (depth == 0) {
-                    int next = index + 1;
-                    while (next < text.length() && Character.isWhitespace(text.charAt(next))) {
-                        next++;
-                    }
-                    return next < text.length() && ")(:,.=!?[]{".indexOf(text.charAt(next)) >= 0
-                            ? index
-                            : -1;
+                    return index;
                 }
             }
         }
         return -1;
+    }
+
+    private boolean isGenericTypeContent(String content) {
+        if (content.isBlank() || !content.matches("[A-Za-z0-9_.,? :<>\\[\\]*]+")) {
+            return false;
+        }
+        Matcher starProjection = Pattern.compile("\\*").matcher(content);
+        while (starProjection.find()) {
+            int previous = previousNonWhitespace(content, starProjection.start() - 1);
+            int next = nextNonWhitespace(content, starProjection.end());
+            if ((previous >= 0 && content.charAt(previous) != ',' && content.charAt(previous) != '<') ||
+                    (next < content.length() && content.charAt(next) != ',' && content.charAt(next) != '>')) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int previousNonWhitespace(String text, int index) {
+        while (index >= 0 && Character.isWhitespace(text.charAt(index))) {
+            index--;
+        }
+        return index;
+    }
+
+    private int nextNonWhitespace(String text, int index) {
+        while (index < text.length() && Character.isWhitespace(text.charAt(index))) {
+            index++;
+        }
+        return index;
     }
 
     private boolean isInsideIgnoredRange(int offset, List<IntRange> ranges) {
